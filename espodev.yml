@@ -1,9 +1,0 @@
-name: espodev
-path: ../espocrm
-port: 8080
-db:
-  root_pass: root_pass
-  name: espocrm
-  user: espocrm
-  pass: espocrm
-  port: 3306

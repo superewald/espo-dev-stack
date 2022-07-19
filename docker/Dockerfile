@@ -8,9 +8,18 @@ RUN export NODE_VER=$(curl -s https://nodejs.org/en/ | grep -Po '\d*\.\d*\.\d* L
     npm install -g grunt-cli
 
 # install wkhtmltopdf
-RUN apt update && apt install -y wkhtmltopdf
+RUN apt update && apt install -y wkhtmltopdf sed jq inotify-tools
+
+RUN mkdir -p /home/espo/scripts
+COPY ./scripts /home/espo/scripts
 
 # configure crontab
-COPY ./espo-cron /etc/cron.d/espo-cron
+COPY ./scripts/espo-cron /etc/cron.d/espo-cron
+COPY ./conf /opt/docker
+
+# set httpd to listen on 8080 instead of 80 and 4443 instead of 443 (rootless support)
+#RUN sed -i 's/*:80/*:8080/' /opt/docker/etc/httpd/vhost.conf && \
+#    sed -i 's/*:443/*:4443/' /opt/docker/etc/httpd/vhost.conf
+
 RUN chmod 0644 /etc/cron.d/espo-cron && \
     crontab /etc/cron.d/espo-cron

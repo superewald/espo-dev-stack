@@ -1,9 +1,8 @@
 # EspoCRM containers for development
 
-This repository contains container configuration for spawning a local development environment for EspoCRM.
+OCI compatible containers and configurations for EspoCRM development environment.
 
-## usage
+## setup
 
-1. get a copy of EspoCRM (for example, clone the original repository: `git clone https://github.com/espocrm/espocrm`)
-1. clone this repository: `git clone https://github.com/superewald/espocrm-docker-dev`
+1. clone espocrm repository into `espocrm` dir: `git clone https://github.com/espocrm/espocrm ./espocrm`
 1. 

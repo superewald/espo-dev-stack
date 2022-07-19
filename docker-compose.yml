@@ -11,7 +11,7 @@ services:
       MYSQL_USER: ${ESPOCRM_DB_USER:-espocrm}
       MYSQL_PASSWORD: ${ESPOCRM_DB_PASS:-espocrm}
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
     restart: always
     ports:
       - ${ESPOCRM_DB_PORT:-3306}:3306
@@ -19,11 +19,14 @@ services:
   espocrm:
     image: espocrm/dev
     build:
-      context: ./
+      context: ./docker
     container_name: espocrm-dev
     volumes:
-      - ./espocrm:/app
+      - ./espocrm:/home/espo/app
       - ./extensions:/home/espo/extensions
+      - ./data/espo/data:/app/data
+      - ./data/espo/custom:/app/custom
+      - ./data/espo/client/custom:/app/client/custom
     restart: always
     ports:
       - ${ESPOCRM_PORT:-8080}:80
