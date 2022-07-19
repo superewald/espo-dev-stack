@@ -1,5 +1,13 @@
 #!/bin/bash
 
+: '
+Synchronizes <SOURCE> (espocrm installation) into <DESTINATION>
+and handles installation and update of <EXTENSIONS> into <DESTINATION>
+
+Syntax:
+    init-watcher.sh <SOURCE> <EXTENSIONS> <DESTINATION>
+'
+
 scriptDir="$(dirname "$0")"
 
 ESPO_SOURCE=$1

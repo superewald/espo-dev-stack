@@ -1,4 +1,5 @@
-
+# Synchronizes changes to a watched directory (inotify)
+# into destionation.
 function syncWatched() {
     action=$1
     src=$2
