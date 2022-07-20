@@ -27,38 +27,46 @@ function hyphenToCamel() {
     echo "$1" | awk -F"-" '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}} 1' OFS=""
 }
 
+function createExtensionManifest() {
+    extSrc=$1
+
+    php $DESTINATION/devextension.php buildManifest
+}
+
 # install extension from source (initialized with superewald/espo-extension-template)
 function installDevExtension() {
     extSrc=$1
 
     # validate that directory contains manifest
-    if [[ ! -f "$extSrc/manifest.json" ]]; then
-        echo "Manifest for $extSrc is missing!"
+    if [[ ! -f "$extSrc/extension.json" ]]; then
+        echo "Extension config for $extSrc is missing!"
         return
     fi
 
     # get extension name
-    extName=$(jq -r .name $extSrc/manifest.json)
+    extName=$(jq -r .module $extSrc/config.json)
     extNameHyphen=$(camelToHyphen "$extName")
 
     # match files from template to espo structure
     extAppDir="$DESTINATION/application/Espo/Modules/$extName"
     extClientDir="$DESTINATION/client/modules/$extNameHyphen"
-    extUploadDir="$DESTINATION/data/uploads/extensions/$extNameHyphen"
+
+    if [[ ! -d "$extSrc/files" ]]; then
+        extSrcAppDir="$extSrc/app"
+        extSrcClientDir="$extSrc/client"
+    else
+        extSrcAppDir="$extSrc/src/files/application/Espo/Modules/$extName"
+        extSrcClientDir="$extSrc/src/files/client/modules/$extNameHyphen"
+    fi
 
     # create necessary directories
     mkdir -p $extAppDir
     mkdir -p $extClientDir
-    mkdir -p $extUploadDir
 
     # copy backend files
-    cp -rup "$extSrc/app/." "$extAppDir"
+    cp -rup "$extSrcAppDir/." "$extAppDir"
     # copy frontend files
-    cp -rup "$extSrc/client/." "$extClientDir"
-    # copy scripts
-    cp -rup "$extSrc/scripts" "$extUploadDir"
-    # copy manifest
-    cp -up "$extSrc/manifest.json" "$extUploadDir"
+    cp -rup "$extSrcClientDir/." "$extClientDir"
 
     # install extension in espocrm
     php $DESTINATION/devextension.php install $extUploadDir
@@ -132,6 +140,7 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         # directories that trigger a change to the extension
         extSrcAppDir="$SOURCE/$extNameHyphen/app"
         extSrcClientDir="$SOURCE/$extNameHyphen/client"
+        extSrcScriptDir="$SOURCE/$extNameHyphen/"
 
         # matching destinations
         extDestAppDir="$DESTINATION/application/Espo/Modules/$extName"
@@ -140,7 +149,6 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         # replace directory paths
         fileDestPath="${srcPath/"$extSrcAppDir"/"$extDestAppDir"}"
         fileDestPath="${fileDestPath/"$extSrcClientDir"/"$extDestClientDir"}"
-        #fileDestPath="${fileDestPath/"$SOURCE/$extNameHyphen/manifest.json"/"$DESTINATION/application/Modules/$extName/manifest.json"}"
 
         # skip if file/path is ignored
         if [[ "$srcPath" == "$fileDestPath" ]]; then

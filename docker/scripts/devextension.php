@@ -22,7 +22,6 @@ function runInstallScript(string $name, string $path, Espo\Core\Application $app
     }
 }
 
-
 function installExtension(string $path, \Espo\Core\Application $app) {
     try  {
         $container = $app->getContainer();
@@ -37,29 +36,35 @@ function installExtension(string $path, \Espo\Core\Application $app) {
             return;
         }
         
-        $manifest = $fm->getContents($path."/manifest.json");
-        if(!$manifest) {
-            print("Manifest was not found!\n");
+        $config = $fm->getContents($path."/config.json");
+        if(!$config) {
+            print("config was not found!\n");
             return;
         }
-        $manifest = json_decode($manifest, true);
+        $config = json_decode($config, true);
         
+        $scriptPath = $path."/scripts";
+        if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
+            $scriptPath = $path."/src/scripts";
+
         // before install
-        runInstallScript("BeforeInstall", $path."/scripts/", $app);
+        runInstallScript("BeforeInstall", $scriptPath, $app);
     
         // check if extension was already installed before
         $ext = $em->getRepository('Extension')->where([
-            'name=' => $manifest['name']
+            'name=' => $config['name']
         ])->findOne();
         
+        
         if($ext == null) {
+            $manifest = getExtensionManifest($path, $config);
             $ext = $em->createEntity('Extension', $manifest);
             $ext->set('isInstalled', true);
             $em->saveEntity($ext);
     
-            runInstallScript("AfterInstall", $path."/scripts", $app);
+            runInstallScript("AfterInstall", $scriptPath, $app);
     
-            print("Extension {$manifest['name']} was installed.\n");
+            print("Extension {$config['name']} was installed.\n");
         } else {
             if(!$ext->get('isInstalled')) {
                 $ext->set('isInstalled', true);
@@ -67,7 +72,7 @@ function installExtension(string $path, \Espo\Core\Application $app) {
                 print("Extension was activated.\n");
             }
     
-            print("Extension {$manifest['name']} was already installed.\n");
+            print("Extension {$config['name']} was already installed.\n");
         }
     } catch(Throwable $e) {
         print($e->getMessage());
@@ -89,29 +94,52 @@ function uninstallExtension(string $path, \Espo\Core\Application $app) {
             return;
         }
         
-        $manifest = $fm->getContents($path."/manifest.json");
-        if(!$manifest) {
-            print("Manifest was not found!");
+        $config = $fm->getContents($path."/config.json");
+        if(!$config) {
+            print("Extension configuration was not found!");
             return;
         }
-        $manifest = json_decode($manifest, true);
+        $config = json_decode($config, true);
 
-        runInstallScript("BeforeUninstall", $path."/scripts/", $app);
+
+        $scriptPath = $path."/scripts";
+        if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
+            $scriptPath = $path."/src/scripts";
+
+        runInstallScript("BeforeUninstall", $scriptPath, $app);
 
         $exts = $em->getRepository('Extension')->where([
-            'name' => $manifest['name']
+            'name' => $config['name']
         ])->find();
 
         foreach($exts as $ext) {
             $em->removeEntity($ext);
         }
 
-        runInstallScript("AfterUninstall", $path."/scripts/", $app);
-        print("Extension {$manifest['name']} was uninstalled.\n");
+        runInstallScript("AfterUninstall", $scriptPath, $app);
+        print("Extension {$config['name']} was uninstalled.\n");
     } catch(Exception $e) {
         print($e->getMessage()."\n");
         return;
     }
+}
+
+function getExtensionManifest(string $path, $config) {
+    $package = json_decode(file_get_contents(`$path/package.json`));
+
+    $manifest = [
+        "name" => $config->name,
+        "description" => $config->description,
+        "author" => $config->author,
+        "php" => $config->php,
+        "acceptableVersions" => $config->acceptableVersions,
+        "version" => $package->version.'-dev',
+        "skipBackup" => true,
+        "releaseDate" => (new DateTime())->format('Y-m-d'),
+
+    ];
+
+    return $manifest;
 }
 
 switch($cmd) {
