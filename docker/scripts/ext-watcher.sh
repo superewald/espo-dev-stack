@@ -136,11 +136,17 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         # extension name
         extNameHyphen=$(getExtensionName "$srcPath")
         extName=$(hyphenToCamel "$extNameHyphen")
+        extSrcDir="$SOURCE/$extNameHyphen"
 
-        # directories that trigger a change to the extension
-        extSrcAppDir="$SOURCE/$extNameHyphen/app"
-        extSrcClientDir="$SOURCE/$extNameHyphen/client"
-        extSrcScriptDir="$SOURCE/$extNameHyphen/"
+        if [[ ! -d "$extSrcDir/src/files" ]]; then 
+            # directories that trigger a change to the extension
+            extSrcAppDir="$extSrcDir/app"
+            extSrcClientDir="$extSrcDir/client"
+            extSrcScriptDir="$extSrcDir/scripts"
+        else
+            extSrcAppDir="$extSourceDir/src/files/application/Espo/Modules/$extName"
+            extSrcClientDir="$extSourceDir/src/files/client/modules/$extNameHyphen"
+        fi
 
         # matching destinations
         extDestAppDir="$DESTINATION/application/Espo/Modules/$extName"
