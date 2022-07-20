@@ -146,16 +146,28 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         else
             extSrcAppDir="$extSourceDir/src/files/application/Espo/Modules/$extName"
             extSrcClientDir="$extSourceDir/src/files/client/modules/$extNameHyphen"
+            extSrcScriptDir="$extSourceDir/src/scripts"
         fi
 
         # matching destinations
         extDestAppDir="$DESTINATION/application/Espo/Modules/$extName"
         extDestClientDir="$DESTINATION/client/modules/$extNameHyphen"
+        extDestScriptDir="$DESTIONATION/data/uploads/extensions/$extNameHyphen/scripts"
 
         # replace directory paths
         fileDestPath="${srcPath/"$extSrcAppDir"/"$extDestAppDir"}"
         fileDestPath="${fileDestPath/"$extSrcClientDir"/"$extDestClientDir"}"
+        fileDestPath="${fileDestPath/"$extSrcScriptDir"/"$extDestScriptDir"}"
 
+        # if script path handle installation
+        if [[ "$fileDestPath" == *"$extDestScriptDir" ]]; then 
+            php $DESTINATION/devextension.php uninstall $extSrc
+
+            cp -rup "$extSrcScriptDir/." "$extDestScriptDir"
+
+            php $DESTINATION/devextension.php install $extSrc
+            continue
+        fi 
         # skip if file/path is ignored
         if [[ "$srcPath" == "$fileDestPath" ]]; then
             echo "Ignoring $srcPath"
