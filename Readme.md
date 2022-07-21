@@ -4,5 +4,20 @@ OCI compatible containers and configurations for EspoCRM development environment
 
 ## setup
 
-1. clone espocrm repository into `espocrm` dir: `git clone https://github.com/espocrm/espocrm ./espocrm`
-1. 
+```bash
+# create root directory that will be opened in IDE
+mkdir -p ./espodev/extensions
+cd ./espodev
+
+# clone container stack
+git clone https://github.com/superewald/espo-dev-stack stack
+
+# clone espocrm
+git clone https://github.com/espocrm/espocrm
+
+# clone extensions
+## git clone <git-url> extensions/<extension>
+
+# build container
+./stack/compose build
+```

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SCR_CWD=$(dirname "$0")
+SCR_CWD=$(cd "$SCR_CWD" && pwd)
+
+podman-compose -f "$SCR_CWD/docker-compose.yml" "$@"

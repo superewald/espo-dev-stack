@@ -22,11 +22,11 @@ services:
       context: ./docker
     container_name: espocrm-dev
     volumes:
-      - ./espocrm:/home/espo/app
-      - ./extensions:/home/espo/extensions
-      - ./data/espo/data:/app/data
-      - ./data/espo/custom:/app/custom
-      - ./data/espo/client/custom:/app/client/custom
+      - ../espocrm:/home/espo/app
+      - ../extensions:/home/espo/extensions
+      - ../data/espo/data:/app/data
+      - ../data/espo/custom:/app/custom
+      - ../data/espo/client/custom:/app/client/custom
     restart: always
     ports:
       - ${ESPOCRM_PORT:-8080}:80
