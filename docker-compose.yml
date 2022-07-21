@@ -11,7 +11,7 @@ services:
       MYSQL_USER: ${ESPOCRM_DB_USER:-espocrm}
       MYSQL_PASSWORD: ${ESPOCRM_DB_PASS:-espocrm}
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ../data/mysql:/var/lib/mysql
     restart: always
     ports:
       - ${ESPOCRM_DB_PORT:-3306}:3306
