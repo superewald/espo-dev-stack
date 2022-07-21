@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PODMAN_USERNS=keep-id
+
 SCR_CWD=$(dirname "$0")
 SCR_CWD=$(cd "$SCR_CWD" && pwd)
 
