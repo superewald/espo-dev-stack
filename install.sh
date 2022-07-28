@@ -109,7 +109,7 @@ if [[ "$startContainers" == "Y" ]] || [[ "$startContainers" == "" ]]; then
     echo "=> Starting container stack.."
     prevCwd=$(pwd)
     cd "$installDir"
-    "$./stack/compose up -d"
+    "./stack/compose" up -d
     cd "$prevCwd"
 
     echo ""
