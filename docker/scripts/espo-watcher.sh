@@ -21,6 +21,10 @@ inotifywait -r -m "$SOURCE" -e create,close_write,move,delete |
     while read directory action file; do
         path="${directory}${file}"
         dest="${path/"$SOURCE"/"$DESTINATION"}"
+        
+        if [[ "$directory" == *".git/"* ]]; then
+            continue
+        fi
 
         # sync files to destination
         syncWatched $action $path $dest
@@ -32,17 +36,14 @@ inotifywait -r -m "$SOURCE" -e create,close_write,move,delete |
             php "$SOURCE/bin/command rebuild"
         elif [[ "$directory" == *"client/src/"* ]]; then
             echo "Building frontend library.."
-            prevCwd=$(pwd)
-            cd "$SOURCE"
-            npx grunt espo-bundle
-            npx grunt prepare-lib-original
-            npx grunt uglify:bundle
-            cd "$prevCwd"
+            npx grunt --base "$SOURCE" espo-bundle
+            npx grunt --base "$SOURCE" prepare-lib-original
+            npx grunt --base "$SOURCE" uglify:bundle
         elif [[ "$directory" == *"frontend/less/"* ]]; then
             # build frontend css
             echo "Building frontend css.."
-            npx grunt less
-            npx grunt cssmin
+            npx grunt --base "$SOURCE" less
+            npx grunt --base "$SOURCE" cssmin
         fi
 
     done
