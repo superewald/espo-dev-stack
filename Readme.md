@@ -19,8 +19,8 @@ The following sofware is needed to use this stack:
 
 > NOTE: If you are using podman you have to create symlinks for docker "alias":
 > ```bash
-> sudo ln -s /usr/bin/docker /usr/bin/podman
-> ln -s $HOME/.local/bin/docker-compose $HOME/.local/bin/podman-compose
+> sudo ln -s /usr/bin/podman /usr/bin/docker
+> ln -s $HOME/.local/bin/podman-compose $HOME/.local/bin/docker-compose
 > ```
 
 ## setup
