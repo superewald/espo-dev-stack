@@ -51,7 +51,10 @@ ln -s "$installDir/stack/compose" "$installDir/compose"
 
 echo ""
 echo "=> Build espocrm container <="
-"$installDir/stack/compose" build
+prevCwd=$(pwd)
+cd "$installDir"
+"./stack/compose" build
+cd "$prevCwd"
 
 echo ""
 echo "=> Chose extensions to install (must be git repo or zip; empty to skip):"
@@ -104,7 +107,10 @@ read -p "Do you want to start the container and install EspoCRM now ? [Y/n]" sta
 
 if [[ "$startContainers" == "Y" ]] || [[ "$startContainers" == "" ]]; then
     echo "=> Starting container stack.."
-    "$installDir/compose up -d"
+    prevCwd=$(pwd)
+    cd "$installDir"
+    "$./stack/compose up -d"
+    cd "$prevCwd"
 
     echo ""
     echo "=> Containers are running! Head to http://localhost:8080/install to finish espocrm setup."
