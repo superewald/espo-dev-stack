@@ -1,1 +1,1 @@
-* * * * * cd /app; /usr/local/bin/php -f cron.php > /dev/null 2>&1
+* * * * * application cd /app; /usr/local/bin/php -f cron.php > /dev/null 2>&1
