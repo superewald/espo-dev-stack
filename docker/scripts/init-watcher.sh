@@ -30,4 +30,4 @@ cp -rup "$ESPO_SOURCE/." "$ESPO_DEST"
 
 # start watchers
 "$scriptDir/espo-watcher.sh" "$ESPO_SOURCE" "$ESPO_DEST" &
-"$scriptDir/ext-watcher.sh" "$EXT_SOURCE" "$ESPO_DEST" &
+"$scriptDir/ext-watcher.sh" "$EXT_SOURCE" "$ESPO_DEST"
