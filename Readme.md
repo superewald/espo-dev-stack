@@ -35,6 +35,28 @@ There is a little helper script for container management located at `./compose`.
 - **stop containers**: `./compose down`
 - **build containers**: `./compose build`
 
+## development
+
+The environment is configured to serve the recent changes of your source directories (`espocrm/` and `extensions/**`).
+
+It is recommended to open the top level directory inside VSCode/VSCodium for a nice IDE setup!
+
+### espocrm
+
+EspoCRM is located inside the `espocrm/` folder. Just follow the official [development guide]() for EspoCRM.
+
+### extensions
+
+Extensions for EspoCRM are located in `extensions/` and can be either an 
+
+- extension zip package 
+- source folder with structure of [official extension template](https://github.com/espocrm/espo-ext-template)
+- source folder with structure of [superewald's extension template](https://github.com/superewald/espo-ext-template)
+
+Just stick to the according documentation.
+
+The containers are configured to install the extensions and handle updates.
+
 ## application data
 
 EspoCRM and Mysql data is stored at `./data` with the following structure:
