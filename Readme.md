@@ -8,6 +8,21 @@ Containers and configuration for a local espocrm specific development environmen
 - easely add and remove extensions from source or zip
 - allows parallel development of multiple extensions
 
+## prerequisites
+
+The following sofware is needed to use this stack:
+
+1. [Docker] or [Podman] (>= 4.0) with [netavark] and [aardvark-dns]
+1. [docker-compose] or [podman-compose] (latest development)
+1. php (>= 7.3)
+1. nodejs (>= 14) & npm
+
+> NOTE: If you are using podman you have to create symlinks for docker "alias":
+> ```bash
+> sudo ln -s /usr/bin/docker /usr/bin/podman
+> ln -s $HOME/.local/bin/docker-compose $HOME/.local/bin/podman-compose
+> ```
+
 ## setup
 
 It is recommended to use the [install script]() which creates the local stack for you. Run the script and follow the instructions.
@@ -39,3 +54,10 @@ EspoCRM and Mysql data is stored at `./data` with the following structure:
 - `mysql/` data of mysql
 
 If you want to reinstall/reconfigure your application you should remove the data folder (`rm -r ./data`)!
+
+[Docker]: https://www.docker.com/
+[docker-compose]: https://docs.docker.com/compose/
+[Podman]: https://podman.io/
+[podman-compose]: https://github.com/containers/podman-compose
+[netavark]: https://github.com/containers/netavark
+[aardvark-dns]: https://github.com/containers/aardvark-dns
