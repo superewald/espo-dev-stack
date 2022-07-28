@@ -22,7 +22,7 @@ The following sofware is needed to use this stack:
 It is recommended to use the [install script]() which creates the local stack for you. Run the script and follow the instructions.
 
 ```
-wget -qO- https://raw.githubusercontent.com/superewald/espo-dev-stack/main/install.sh | bash
+bash <(wget -qO- https://raw.githubusercontent.com/superewald/espo-dev-stack/main/install.sh)
 ```
 
 After executing the install script the EspoCRM stack is ready to be run. 
