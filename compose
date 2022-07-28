@@ -2,7 +2,13 @@
 
 export PODMAN_USERNS=keep-id
 
-SCR_CWD=$(dirname "$0")
-SCR_CWD=$(cd "$SCR_CWD" && pwd)
+if [[ -f "./docker-compose.yml" ]]; then 
+    STACK_DIR="./"
+elif [[ -f "./stack/docker-compose.yml" ]]; then
+    STACK_DIR="./stack"
+else
+    echo "Did not find a valid stack path!"
+    exit
+fi
 
-podman-compose -f "$SCR_CWD/docker-compose.yml" "$@"
+podman-compose -f "$STACK_DIR/docker-compose.yml" "$@"
