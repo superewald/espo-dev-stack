@@ -3,6 +3,33 @@
 echo "<< Installer for EspoCRM development containers >>"
 echo ""
 
+# check for podman or docker
+DOCKER_PATH=$(which docker)
+PODMAN_PATH=$(which podman)
+
+DOCKER_COMPOSE_PATH=$(which docker-compose)
+PODMAN_COMPOSE_PATH=$(which podman-compose)
+
+if [[ "$DOCKER_PATH" == "" ]]; then
+    if [[ "$PODMAN_PATH" == "" ]]; then 
+        echo "!> Error: can't find container engine (docker or podman)"
+        exit
+    fi
+
+    ln -s "$PODMAN_PATH" "$HOME/.local/bin/docker"
+    echo "=> Created podman symlink for docker alias"
+fi
+
+if [[ "$DOCKER_COMPOSE_PATH" == "" ]]; then
+    if [[ "$PODMAN_COMPOSE_PATH" == "" ]]; then
+        echo "!> Error: can't find compose (docker or podman)"
+        exit
+    fi
+
+    ln -s "$PODMAN_COMPOSE_PATH" "$Home/.local/bin/docker-compose"
+    echo "=> Created podman-compose symlink for docker-compose alias"
+fi
+
 read -p "=> Chose install directory [./espodev]: " installDir
 installDir=${installDir:-"./espodev"}
 
@@ -72,5 +99,13 @@ cd "$prevCwd"
 
 echo ""
 echo ""
-echo "The EspoCRM developer stack has been installed to $installDir!"
-echo "You can start the containers by running './compose up -d' from $installDir"
+echo "=> The EspoCRM developer stack has been installed to $installDir!"
+read -p "Do you want to start the container and install EspoCRM now ? [Y/n]" startContainers
+
+if [[ "$startContainers" == "Y" ]] || [[ "$startContainers" == "" ]]; then
+    echo "=> Starting container stack.."
+    "$installDir/compose up -d"
+
+    echo ""
+    echo "=> Containers are running! Head to http://localhost:8080/install to finish espocrm setup."
+fi
