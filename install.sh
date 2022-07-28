@@ -51,7 +51,7 @@ ln -s "$installDir/stack/compose" "$installDir/compose"
 
 echo ""
 echo "=> Build espocrm container <="
-"$installDir/compose" build
+"$installDir/stack/compose" build
 
 echo ""
 echo "=> Chose extensions to install (must be git repo or zip; empty to skip):"
