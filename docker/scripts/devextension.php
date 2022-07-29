@@ -35,13 +35,10 @@ function installExtension(string $path, \Espo\Core\Application $app) {
             print("Path does not exist or is not directory!\n");
             return;
         }
-        
-        $config = $fm->getContents($path."/config.json");
-        if(!$config) {
-            print("config was not found!\n");
+
+        $config = getExtensionConfig($path);
+        if(!$config)
             return;
-        }
-        $config = json_decode($config, true);
         
         $scriptPath = $path."/scripts";
         if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
@@ -94,13 +91,9 @@ function uninstallExtension(string $path, \Espo\Core\Application $app) {
             return;
         }
         
-        $config = $fm->getContents($path."/config.json");
-        if(!$config) {
-            print("Extension configuration was not found!");
+        $config = getExtensionConfig($path);
+        if(!$config)
             return;
-        }
-        $config = json_decode($config, true);
-
 
         $scriptPath = $path."/scripts";
         if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
@@ -122,6 +115,20 @@ function uninstallExtension(string $path, \Espo\Core\Application $app) {
         print($e->getMessage()."\n");
         return;
     }
+}
+
+function getExtensionConfig(string $path)
+{
+    $config = $fm->getContents($path."/extension.json");
+    if(!$config) {
+        $config = $fm->getContents($path."/manifest.json");
+        if(!$config) {
+            print("config was not found!\n");
+            return null;
+        }
+    }
+
+    return json_decode($config, true);
 }
 
 function getExtensionManifest(string $path, $config) {

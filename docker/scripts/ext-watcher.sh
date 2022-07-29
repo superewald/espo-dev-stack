@@ -36,25 +36,27 @@ function createExtensionManifest() {
 # install extension from source (initialized with superewald/espo-extension-template)
 function installDevExtension() {
     extSrc=$1
+    extConfig="$extSrc/extension.json"
 
     # validate that directory contains manifest
-    if [[ ! -f "$extSrc/extension.json" ]]; then
-        echo "Extension config for $extSrc is missing!"
+    extConfig=$(getExtensionConfigFile "$extSrc")
+    if [[ "$extConfig" == "" ]]; then
+        echo "ERROR: Extension $extSrc has no manifest.json or extension.json"
         return
     fi
 
     # get extension name
-    extName=$(jq -r .module $extSrc/config.json)
+    extName=$(jq -r .module $extConfig)
     extNameHyphen=$(camelToHyphen "$extName")
 
     # match files from template to espo structure
     extAppDir="$DESTINATION/application/Espo/Modules/$extName"
     extClientDir="$DESTINATION/client/modules/$extNameHyphen"
 
-    if [[ ! -d "$extSrc/files" ]]; then
+    if [[ -d "$extSrc/app" ]]; then
         extSrcAppDir="$extSrc/app"
         extSrcClientDir="$extSrc/client"
-    else
+    elif [[ -d "$extSrc/src/files" ]]; then
         extSrcAppDir="$extSrc/src/files/application/Espo/Modules/$extName"
         extSrcClientDir="$extSrc/src/files/client/modules/$extNameHyphen"
     fi
@@ -69,7 +71,7 @@ function installDevExtension() {
     cp -rup "$extSrcClientDir/." "$extClientDir"
 
     # install extension in espocrm
-    php $DESTINATION/devextension.php install $extUploadDir
+    php $DESTINATION/devextension.php install $extSrc
     echo "$extName was installed!"
 }
 
@@ -133,8 +135,13 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         destPath="${srcPath/"$SOURCE"/"$DESTINATION"}"
         destDir="${directory/"$SOURCE"/"$DESTINATION"}"
 
+        if [[ ! -f "$directory/extension.json" ]]; then
+            echo "Error: Extension file for $directory is missing!"
+            continue
+        fi
+
         # extension name
-        extNameHyphen=$(getExtensionName "$srcPath")
+        extNameHyphen=$(jq -r .module "$directory/extension.json")
         extName=$(hyphenToCamel "$extNameHyphen")
         extSrcDir="$SOURCE/$extNameHyphen"
 
