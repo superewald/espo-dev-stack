@@ -26,7 +26,7 @@ if [[ "$DOCKER_COMPOSE_PATH" == "" ]]; then
         exit
     fi
 
-    ln -s "$PODMAN_COMPOSE_PATH" "$Home/.local/bin/docker-compose"
+    ln -s "$PODMAN_COMPOSE_PATH" "$HOME/.local/bin/docker-compose"
     echo "=> Created podman-compose symlink for docker-compose alias"
 fi
 
