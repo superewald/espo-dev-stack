@@ -27,51 +27,53 @@ function hyphenToCamel() {
     echo "$1" | awk -F"-" '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}} 1' OFS=""
 }
 
-function createExtensionManifest() {
-    extSrc=$1
-
-    php $DESTINATION/devextension.php buildManifest
-}
-
 # install extension from source (initialized with superewald/espo-extension-template)
 function installDevExtension() {
     extSrc=$1
-    extConfig="$extSrc/extension.json"
 
     # validate that directory contains manifest
-    extConfig=$(getExtensionConfigFile "$extSrc")
-    if [[ "$extConfig" == "" ]]; then
-        echo "ERROR: Extension $extSrc has no manifest.json or extension.json"
+    if [[ ! -f "$extSrc/extension.json" ]]; then
+        echo "ERROR: Extension $extSrc has no extension.json"
         return
     fi
 
     # get extension name
-    extName=$(jq -r .module $extConfig)
+    extConfig="$extSrc/extension.json"
+    extName=$(jq -r .module "$extConfig")
     extNameHyphen=$(camelToHyphen "$extName")
 
     # match files from template to espo structure
     extAppDir="$DESTINATION/application/Espo/Modules/$extName"
     extClientDir="$DESTINATION/client/modules/$extNameHyphen"
+    extUploadDir="$DESTINATION/data/upload/extensions/$extNameHyphen"
+    extScriptDir="$extUploadDir/scripts"
 
     if [[ -d "$extSrc/app" ]]; then
         extSrcAppDir="$extSrc/app"
         extSrcClientDir="$extSrc/client"
+        extSrcScriptDir="$extSrc/scripts"
     elif [[ -d "$extSrc/src/files" ]]; then
         extSrcAppDir="$extSrc/src/files/application/Espo/Modules/$extName"
         extSrcClientDir="$extSrc/src/files/client/modules/$extNameHyphen"
+        extSrcScriptDir="$extSrc/src/scripts"
     fi
 
     # create necessary directories
     mkdir -p $extAppDir
     mkdir -p $extClientDir
+    mkdir -p $extScriptDir
 
     # copy backend files
     cp -rup "$extSrcAppDir/." "$extAppDir"
     # copy frontend files
     cp -rup "$extSrcClientDir/." "$extClientDir"
+    # copy scripts
+    cp -rup "$extSrcScriptDir/." "$extScriptDir"
+    # copy extension.json
+    cp -up "$extSrc/extension.json" "$extUploadDir/manifest.json"
 
     # install extension in espocrm
-    php $DESTINATION/devextension.php install $extSrc
+    php $DESTINATION/devextension.php install $extUploadDir
     echo "$extName was installed!"
 }
 
@@ -84,12 +86,24 @@ function installZipExtension() {
     echo "$extZip was installed!"
 }
 
-# get extension name from path
-function getExtensionName() {
+function getExtensionBaseDir() {
     path=$1
     extPath=${path#"$SOURCE"}
-    pathSplit=(${extPath//// })
-    echo ${pathSplit[0]}
+    extPath=(${extPath//// })
+    extPath=${extPath[0]}
+    echo "$SOURCE/$extPath"
+}
+
+function isEspoInstalled() {
+    path=$1
+
+    if [[ -f "$path/data/config-internal.php" ]]; then
+        if grep -Fq "'isInstalled' => true" "$path/data/config-internal.php"; then
+            return 0
+        fi
+    fi
+
+    return 1
 }
 
 # validate arguments
@@ -103,6 +117,11 @@ fi
 
 # copy custom extension installer for superewald's template
 cp -up "/home/espo/scripts/devextension.php" "$DESTINATION/devextension.php"
+
+# wait until EspoCRM has been installed
+while ! isEspoInstalled "$DESTINATION"; do
+    sleep 5
+done
 
 # find all zip files containing extensions and install them
 for zip in `find $SOURCE -maxdepth 1 -type f -name '*.zip'`; do 
@@ -135,15 +154,10 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         destPath="${srcPath/"$SOURCE"/"$DESTINATION"}"
         destDir="${directory/"$SOURCE"/"$DESTINATION"}"
 
-        if [[ ! -f "$directory/extension.json" ]]; then
-            echo "Error: Extension file for $directory is missing!"
-            continue
-        fi
-
         # extension name
-        extNameHyphen=$(jq -r .module "$directory/extension.json")
-        extName=$(hyphenToCamel "$extNameHyphen")
-        extSrcDir="$SOURCE/$extNameHyphen"
+        extSrcDir=$(getExtensionBaseDir "$directory")
+        extName=$(jq -r .module "$extSrcDir/extension.json")
+        extNameHyphen=$(camelToHyphen "$extNameHyphen")
 
         if [[ ! -d "$extSrcDir/src/files" ]]; then 
             # directories that trigger a change to the extension
@@ -151,15 +165,16 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
             extSrcClientDir="$extSrcDir/client"
             extSrcScriptDir="$extSrcDir/scripts"
         else
-            extSrcAppDir="$extSourceDir/src/files/application/Espo/Modules/$extName"
-            extSrcClientDir="$extSourceDir/src/files/client/modules/$extNameHyphen"
-            extSrcScriptDir="$extSourceDir/src/scripts"
+            extSrcAppDir="$extSrcDir/src/files/application/Espo/Modules/$extName"
+            extSrcClientDir="$extSrcDir/src/files/client/modules/$extNameHyphen"
+            extSrcScriptDir="$extSrcDir/src/scripts"
         fi
 
         # matching destinations
         extDestAppDir="$DESTINATION/application/Espo/Modules/$extName"
         extDestClientDir="$DESTINATION/client/modules/$extNameHyphen"
-        extDestScriptDir="$DESTIONATION/data/uploads/extensions/$extNameHyphen/scripts"
+        extDestUploadDir="$DESTINATION/data/upload/extensions/$extNameHyphen"
+        extDestScriptDir="$extDestUploadDir/scripts"
 
         # replace directory paths
         fileDestPath="${srcPath/"$extSrcAppDir"/"$extDestAppDir"}"
@@ -167,14 +182,17 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         fileDestPath="${fileDestPath/"$extSrcScriptDir"/"$extDestScriptDir"}"
 
         # if script path handle installation
-        if [[ "$fileDestPath" == *"$extDestScriptDir" ]]; then 
-            php $DESTINATION/devextension.php uninstall $extSrc
+        if [[ "$fileDestPath" == *"$extDestScriptDir"* ]]; then 
+            echo "Update extension..."
+            php $DESTINATION/devextension.php uninstall $extDestUploadDir
 
             cp -rup "$extSrcScriptDir/." "$extDestScriptDir"
 
-            php $DESTINATION/devextension.php install $extSrc
+            php $DESTINATION/devextension.php install $extDestUploadDir
+            echo "Extension was updated!"
             continue
         fi 
+
         # skip if file/path is ignored
         if [[ "$srcPath" == "$fileDestPath" ]]; then
             echo "Ignoring $srcPath"
@@ -183,4 +201,13 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
 
         # synchronize extension files
         syncWatched $action $srcPath $fileDestPath
+
+        if [[ "$srcPath" == *"$extSrcAppDir/Resources/"* ]]; then
+            echo "Rebuild EspoCRM..."
+            php $DESTINATION/bin/command clear-cache
+            php $DESTINATION/bin/command rebuild
+            echo "EspoCRM has been rebuild!"
+        elif [[ "$srcPath" == *"$extSrcClientDir/"* ]]; then
+            php $DESTINATION/bin/command clear-cache
+        fi
     done

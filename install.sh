@@ -32,6 +32,7 @@ fi
 
 read -p "=> Chose install directory [./espodev]: " installDir
 installDir=${installDir:-"./espodev"}
+installDir=$(realpath "$installDir")
 
 # create install dir if not exist
 if [[ -d "$installDir" ]]; then 
@@ -47,7 +48,7 @@ git clone "$espoRepoUrl" "$installDir/espocrm"
 # clone dev stack to ./stack
 git clone https://github.com/superewald/espo-dev-stack "$installDir/stack"
 # create comfort symlink to ./stack/compose
-ln -s "$installDir/stack/compose" "$installDir/compose"
+ln -s $(realpath "$installDir/stack/compose") $(realpath "$installDir/compose")
 
 echo ""
 echo "=> Build espocrm container <="

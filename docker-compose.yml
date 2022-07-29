@@ -22,6 +22,7 @@ services:
       context: ./docker
     container_name: espocrm-dev
     volumes:
+      - ./docker/scripts:/home/espo/scripts
       - ../espocrm:/home/espo/app
       - ../extensions:/home/espo/extensions
       - ../data/espo/data:/app/data

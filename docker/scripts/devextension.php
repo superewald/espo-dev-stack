@@ -35,11 +35,14 @@ function installExtension(string $path, \Espo\Core\Application $app) {
             print("Path does not exist or is not directory!\n");
             return;
         }
-
-        $config = getExtensionConfig($path);
-        if(!$config)
-            return;
         
+        $config = $fm->getContents($path."/manifest.json");
+        if(!$config) {
+            print("Error: extension ".$path." is missing manifest.json");
+            return;
+        }
+        $config = json_decode($config, true);
+
         $scriptPath = $path."/scripts";
         if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
             $scriptPath = $path."/src/scripts";
@@ -54,8 +57,7 @@ function installExtension(string $path, \Espo\Core\Application $app) {
         
         
         if($ext == null) {
-            $manifest = getExtensionManifest($path, $config);
-            $ext = $em->createEntity('Extension', $manifest);
+            $ext = $em->createEntity('Extension', $config);
             $ext->set('isInstalled', true);
             $em->saveEntity($ext);
     
@@ -91,9 +93,12 @@ function uninstallExtension(string $path, \Espo\Core\Application $app) {
             return;
         }
         
-        $config = getExtensionConfig($path);
-        if(!$config)
+        $config = $fm->getContents($path."/manifest.json");
+        if(!$config) {
+            print("Error: extension ".$path." is missing manifest.json");
             return;
+        }
+        $config = json_decode($config, true);
 
         $scriptPath = $path."/scripts";
         if(!is_dir($scriptPath) && is_dir($path."/src/scripts"))
@@ -115,38 +120,6 @@ function uninstallExtension(string $path, \Espo\Core\Application $app) {
         print($e->getMessage()."\n");
         return;
     }
-}
-
-function getExtensionConfig(string $path)
-{
-    $config = $fm->getContents($path."/extension.json");
-    if(!$config) {
-        $config = $fm->getContents($path."/manifest.json");
-        if(!$config) {
-            print("config was not found!\n");
-            return null;
-        }
-    }
-
-    return json_decode($config, true);
-}
-
-function getExtensionManifest(string $path, $config) {
-    $package = json_decode(file_get_contents(`$path/package.json`));
-
-    $manifest = [
-        "name" => $config->name,
-        "description" => $config->description,
-        "author" => $config->author,
-        "php" => $config->php,
-        "acceptableVersions" => $config->acceptableVersions,
-        "version" => $package->version.'-dev',
-        "skipBackup" => true,
-        "releaseDate" => (new DateTime())->format('Y-m-d'),
-
-    ];
-
-    return $manifest;
 }
 
 switch($cmd) {
