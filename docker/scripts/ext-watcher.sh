@@ -162,7 +162,9 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         # extension name
         extSrcDir=$(getExtensionBaseDir "$directory")
         extName=$(jq -r .module "$extSrcDir/extension.json")
-        extNameHyphen=$(camelToHyphen "$extNameHyphen")
+        extNameHyphen=$(camelToHyphen "$extName")
+
+        echo "Extension $extName ($extNameHyphen): $extSrcDir"
 
         if [[ ! -d "$extSrcDir/src/files" ]]; then 
             # directories that trigger a change to the extension
