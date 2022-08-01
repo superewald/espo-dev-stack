@@ -71,6 +71,11 @@ function installDevExtension() {
     cp -rup "$extSrcScriptDir/." "$extScriptDir"
     # copy extension.json
     cp -up "$extSrc/extension.json" "$extUploadDir/manifest.json"
+    # move composer files
+    if [[ -d "$extSrc/vendor" ]]; then
+        mkdir -p "$extAppDir/vendor"
+        cp -rup "$extSrc/vendor/." "$extAppDir/vendor"
+    fi
 
     # install extension in espocrm
     php $DESTINATION/devextension.php install $extUploadDir
@@ -169,9 +174,11 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
             extSrcClientDir="$extSrcDir/src/files/client/modules/$extNameHyphen"
             extSrcScriptDir="$extSrcDir/src/scripts"
         fi
+        extSrcVendorDir="$extSrcAppDir/vendor"
 
         # matching destinations
         extDestAppDir="$DESTINATION/application/Espo/Modules/$extName"
+        extDestVendorDir="$extDestAppDir/vendor"
         extDestClientDir="$DESTINATION/client/modules/$extNameHyphen"
         extDestUploadDir="$DESTINATION/data/upload/extensions/$extNameHyphen"
         extDestScriptDir="$extDestUploadDir/scripts"
@@ -180,6 +187,7 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
         fileDestPath="${srcPath/"$extSrcAppDir"/"$extDestAppDir"}"
         fileDestPath="${fileDestPath/"$extSrcClientDir"/"$extDestClientDir"}"
         fileDestPath="${fileDestPath/"$extSrcScriptDir"/"$extDestScriptDir"}"
+        fileDestPath="${fileDestPath/"$extSrcVendorDir"/"$extDestVendorDir"}"
 
         # if script path handle installation
         if [[ "$fileDestPath" == *"$extDestScriptDir"* ]]; then 
@@ -191,6 +199,8 @@ inotifywait -r -m $SOURCE -e create,delete,move,close_write |
             php $DESTINATION/devextension.php install $extDestUploadDir
             echo "Extension was updated!"
             continue
+        elif [[ "$srcPath" == "$extSrcVendorDir"* ]]; then
+            cp -rup "$extSrcVendorDir/." "$extDestVendorDir"
         fi 
 
         # skip if file/path is ignored
