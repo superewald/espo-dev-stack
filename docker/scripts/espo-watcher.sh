@@ -32,18 +32,18 @@ inotifywait -r -m "$SOURCE" -e create,close_write,move,delete |
         if [[ "$directory" == *"application/Espo/Resources/"* ]]; then
             # rebuild cache
             echo "Clearing cache and rebuilding.. "
-            php "$SOURCE/bin/command clear-cache"
-            php "$SOURCE/bin/command rebuild"
+            php "$DESTINATION/bin/command clear-cache"
+            php "$DESTINATION/bin/command rebuild"
         elif [[ "$directory" == *"client/src/"* ]]; then
             echo "Building frontend library.."
-            npx grunt --base "$SOURCE" espo-bundle
-            npx grunt --base "$SOURCE" prepare-lib-original
-            npx grunt --base "$SOURCE" uglify:bundle
+            npx grunt --base "$DESTINATION" espo-bundle
+            npx grunt --base "$DESTINATION" prepare-lib-original
+            npx grunt --base "$DESTINATION" uglify:bundle
         elif [[ "$directory" == *"frontend/less/"* ]]; then
             # build frontend css
             echo "Building frontend css.."
-            npx grunt --base "$SOURCE" less
-            npx grunt --base "$SOURCE" cssmin
+            npx grunt --base "$DESTINATION" less
+            npx grunt --base "$DESTINATION" cssmin
         fi
 
     done
