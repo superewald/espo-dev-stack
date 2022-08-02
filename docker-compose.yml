@@ -22,12 +22,13 @@ services:
       context: ./docker
     container_name: espocrm-dev
     volumes:
+      - ./docker/conf/etc/supervisor.d/watcher.conf:/opt/docker/etc/supervisor.d/watcher.conf
       - ./docker/scripts:/home/espo/scripts
       - ../espocrm:/home/espo/app
       - ../extensions:/home/espo/extensions
       - ../data/espo/data:/app/data
-      - ../data/espo/custom:/app/custom
-      - ../data/espo/client/custom:/app/client/custom
+      #- ../data/espo/custom:/app/custom
+      #- ../data/espo/client/custom:/app/client/custom
     restart: always
     ports:
       - ${ESPOCRM_PORT:-8080}:80
