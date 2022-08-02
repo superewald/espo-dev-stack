@@ -28,6 +28,9 @@ fi
 # synchronize espo source
 cp -rup "$ESPO_SOURCE/." "$ESPO_DEST"
 
+# build espocrm
+npx grunt --base "/app" less cssmin espo-bundle prepare-lib-original uglify:bundle copy:frontendLib
+
 # start watchers
 "$scriptDir/espo-watcher.sh" "$ESPO_SOURCE" "$ESPO_DEST" &
 "$scriptDir/ext-watcher.sh" "$EXT_SOURCE" "$ESPO_DEST"
